@@ -1,9 +1,10 @@
 {
   "name": "circleci-pipeline-polling",
-  "version": "0.1.1",
+  "version": "0.2.0",
   "description": "GitHub Action to Poll CircleCI Pipelines",
   "main": "index.js",
   "scripts": {
+    "build": "ncc build index.js",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "repository": {
@@ -19,5 +20,8 @@
   "dependencies": {
     "@actions/core": "^1.8.2",
     "@actions/github": "^5.0.3"
+  },
+  "devDependencies": {
+    "@vercel/ncc": "^0.33.4"
   }
 }
