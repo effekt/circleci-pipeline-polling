@@ -35,10 +35,10 @@ const getPipelineWorkflows = async (pipelineId, circleCiToken, pageToken) => {
   try {
     const inputCciToken = core.getInput('token', { required: true });
     const inputPipelineId = core.getInput('pipeline', { required: true });
-    const inputPollRate = core.getInput('interval');
+    const inputInterval = core.getInput('interval');
     const inputTimeout = core.getInput('timeout');
 
-    const pollRate = Number.parseInt(inputPollRate || 10) * 1000;
+    const pollRate = Number.parseInt(inputInterval || 10) * 1000;
     const timeout = Number.parseInt(inputTimeout || 15) * 60000;
 
     const maxRunTime = new Date(new Date().getTime() + timeout).getTime();
