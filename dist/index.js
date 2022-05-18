@@ -20471,6 +20471,7 @@ const updateCheck = async (octokit, check_run_id, repo, conclusion) => {
       await delay(pollRate);
     }
 
+    console.log(`Timed out after ${timeout / 60000}m.`)
     await updateCheck(octokit, checkId, repo, 'timed_out');
 
     return;

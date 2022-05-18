@@ -1,6 +1,6 @@
 {
   "name": "circleci-pipeline-polling",
-  "version": "1.0.0-alpha.1",
+  "version": "1.0.0",
   "description": "GitHub Action to Poll CircleCI Pipelines",
   "main": "index.js",
   "scripts": {
