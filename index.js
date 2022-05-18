@@ -1,6 +1,9 @@
 const fetch = require('node-fetch');
 const core = require('@actions/core');
 const github = require('@actions/github');
+const {
+  restEndpointMethods,
+} = require("@octokit/plugin-rest-endpoint-methods");
 
 const isVerbose = core.getInput('verbose').toLowerCase() === 'true';
 
@@ -82,6 +85,8 @@ const updateCheck = async (octokit, check_run_id, repo, conclusion) => {
     const inputTimeout = core.getInput('timeout');
 
     const octokit = github.getOctokit(inputGhToken);
+    octokit.plugin(restEndpointMethods);
+    
     const repo = {
       owner: github.context.repo.owner,
       repo: github.context.repo.repo,
