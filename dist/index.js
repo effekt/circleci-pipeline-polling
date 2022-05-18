@@ -5986,7 +5986,7 @@ var __webpack_exports__ = {};
 const fetch = __nccwpck_require__(467);
 const core = __nccwpck_require__(186);
 
-const isVerbose = !!core.getInput('verbose');
+const isVerbose = core.getInput('verbose').toLowerCase() === 'true';
 
 const { Headers, Request } = fetch;
 
@@ -5997,7 +5997,7 @@ const getPipelineWorkflows = async (pipelineId, circleCiToken, pageToken) => {
     'Circle-Token': circleCiToken
   });
 
-  const requestUrl = `https://circleci.com/api/v2/pipeline/${pipelineId}/workflow${pageToken && `?page-token=${pageToken}`}`;
+  const requestUrl = `https://circleci.com/api/v2/pipeline/${pipelineId}/workflow${pageToken ? `?page-token=${pageToken}` : ''}`;
 
   isVerbose && console.log(`Request URL: ${requestUrl}`);
 
@@ -6019,6 +6019,8 @@ const getPipelineWorkflows = async (pipelineId, circleCiToken, pageToken) => {
 
   let items = json.items;
   let next_page_token = json.next_page_token;
+
+  isVerbose && console.log(`next_page_token: ${next_page_token}`);
 
   if (next_page_token) {
     return [...items, ...(await getPipelineWorkflows(pipelineId, circleCiToken, next_page_token))];

@@ -35,6 +35,8 @@ const getPipelineWorkflows = async (pipelineId, circleCiToken, pageToken) => {
   let items = json.items;
   let next_page_token = json.next_page_token;
 
+  isVerbose && console.log(`next_page_token: ${next_page_token}`);
+
   if (next_page_token) {
     return [...items, ...(await getPipelineWorkflows(pipelineId, circleCiToken, next_page_token))];
   }
