@@ -7,6 +7,12 @@ const { Headers, Request } = fetch;
 
 const delay = ms => new Promise(resolve => setTimeout(resolve, ms));
 
+const clear = () => {
+  process.stdout.write(
+		'\x1B[2J\x1B[3J\x1B[H\x1Bc'
+	);
+}
+
 const getPipelineWorkflows = async (pipelineId, circleCiToken, pageToken) => {
   const headers = new Headers({
     'Circle-Token': circleCiToken
@@ -66,8 +72,11 @@ const getPipelineWorkflows = async (pipelineId, circleCiToken, pageToken) => {
     const failingStatuses = ['cancelled', 'error', 'failed', 'failing', 'unauthorized'];
     const successfulStatuses = ['on_hold', 'success'];
 
+    let runTime = 0;
+
     while(true && !(new Date().getTime() > maxRunTime)) {
       const items = await getPipelineWorkflows(inputPipelineId, inputCciToken);
+      clear();
 
       isVerbose && console.log(items);
 
@@ -79,19 +88,19 @@ const getPipelineWorkflows = async (pipelineId, circleCiToken, pageToken) => {
 
       console.log(`Workflows present on CircleCI Pipeline ID (${inputPipelineId}):`);
       console.table(workflows);
-      console.log('\n');
 
       const failedWorkflow = workflows.find((workflow) => {
-        failingStatuses.includes(workflow.status);
+        return failingStatuses.includes(workflow.status);
       });
 
       if (failedWorkflow) {
         core.setFailed(`Failed on workflow: ${failedWorkflow.name}`);
+
         return;
       }
 
       const successfulWorkflows = workflows.filter(workflow => {
-        successfulStatuses.includes(workflow.status);
+        return successfulStatuses.includes(workflow.status);
       });
 
       if (successfulWorkflows.length === workflows.length) {
@@ -99,8 +108,10 @@ const getPipelineWorkflows = async (pipelineId, circleCiToken, pageToken) => {
         
         return;
       }
-      
-      console.log(`Waiting ${pollRate}s`);
+
+      console.log(`Runtime: ${runTime / 1000}s (${pollRate / 1000}s)`);
+
+      runTime += pollRate;
       await delay(pollRate);
     }
 
