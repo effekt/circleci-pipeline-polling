@@ -4,6 +4,7 @@ const github = require('@actions/github');
 const {
   restEndpointMethods,
 } = require("@octokit/plugin-rest-endpoint-methods");
+const { Octokit } = require('octokit');
 
 const isVerbose = core.getInput('verbose').toLowerCase() === 'true';
 
@@ -51,7 +52,7 @@ const getPipelineWorkflows = async (pipelineId, circleCiToken, pageToken) => {
 const createCheck = async (octokit, head_sha, repo) => {
   isVerbose && console.log('Creating Check');
 
-  const { data: { id } } = await octokit.checks.create({
+  const { data: { id } } = await octokit.rest.checks.create({
     ...repo,
     head_sha,
     name: 'CircleCI Pipeline Polling',
@@ -66,7 +67,7 @@ const createCheck = async (octokit, head_sha, repo) => {
 const updateCheck = async (octokit, check_run_id, repo, conclusion) => {
   isVerbose && console.log('Updating Check');
 
-  await octokit.checks.update({
+  await octokit.rest.checks.update({
     ...repo,
     check_run_id,
     conclusion,
@@ -84,7 +85,7 @@ const updateCheck = async (octokit, check_run_id, repo, conclusion) => {
     const inputSha = core.getInput('sha', { required: true });
     const inputTimeout = core.getInput('timeout');
 
-    const octokit = github.getOctokit(inputGhToken);
+    const octokit = new Octokit({ auth: inputGhToken });
     octokit.plugin(restEndpointMethods);
     
     const repo = {
