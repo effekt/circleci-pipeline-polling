@@ -13,6 +13,9 @@ inputs:
   token:
     description: CircleCI Auth Token
     required: true
+  verbose:
+    description: Controls verbosity
+    default: false
 runs:
   using: 'node16'
   main: 'dist/index.js'
