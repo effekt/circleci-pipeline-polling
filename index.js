@@ -1,7 +1,7 @@
 const fetch = require('node-fetch');
 const core = require('@actions/core');
 
-const isVerbose = !!core.getInput('verbose');
+const isVerbose = core.getInput('verbose').toLowerCase() === 'true';
 
 const { Headers, Request } = fetch;
 
@@ -12,7 +12,7 @@ const getPipelineWorkflows = async (pipelineId, circleCiToken, pageToken) => {
     'Circle-Token': circleCiToken
   });
 
-  const requestUrl = `https://circleci.com/api/v2/pipeline/${pipelineId}/workflow${pageToken && `?page-token=${pageToken}`}`;
+  const requestUrl = `https://circleci.com/api/v2/pipeline/${pipelineId}/workflow${pageToken ? `?page-token=${pageToken}` : ''}`;
 
   isVerbose && console.log(`Request URL: ${requestUrl}`);
 
