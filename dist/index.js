@@ -20322,9 +20322,6 @@ var __webpack_exports__ = {};
 const fetch = __nccwpck_require__(467);
 const core = __nccwpck_require__(2186);
 const github = __nccwpck_require__(5438);
-const {
-  restEndpointMethods,
-} = __nccwpck_require__(3044);
 const { Octokit } = __nccwpck_require__(7467);
 
 const isVerbose = core.getInput('verbose').toLowerCase() === 'true';
@@ -20407,7 +20404,6 @@ const updateCheck = async (octokit, check_run_id, repo, conclusion) => {
     const inputTimeout = core.getInput('timeout');
 
     const octokit = new Octokit({ auth: inputGhToken });
-    octokit.plugin(restEndpointMethods);
     
     const repo = {
       owner: github.context.repo.owner,
