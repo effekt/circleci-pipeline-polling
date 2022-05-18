@@ -20348,12 +20348,7 @@ const getPipelineWorkflows = async (pipelineId, circleCiToken, pageToken) => {
   );
 
   const response = await fetch(request);
-
-  isVerbose && console.log(response);
-
   const json = await response.json();
-
-  isVerbose && console.log(json);
 
   let items = json.items;
   let next_page_token = json.next_page_token;
@@ -20370,6 +20365,8 @@ const getPipelineWorkflows = async (pipelineId, circleCiToken, pageToken) => {
 const createCheck = async (octokit, head_sha, repo) => {
   isVerbose && console.log('Creating Check');
 
+  const started_at = new Date().toISOString();
+
   const { data: { id } } = await octokit.rest.checks.create({
     ...repo,
     head_sha,
@@ -20378,6 +20375,7 @@ const createCheck = async (octokit, head_sha, repo) => {
       summary: 'Monitoring CircleCI workflow statuses...',
       title: 'CircleCI Pipeline Polling',
     },
+    started_at,
     status: 'in_progress',
   });
 
@@ -20469,7 +20467,7 @@ const updateCheck = async (octokit, check_run_id, repo, conclusion, summary) => 
       });
 
       if (successfulWorkflows.length === workflows.length) {
-        console.log(`All workflows passed for pipeline ${pipelineId}!`);
+        console.log(`All workflows passed for pipeline ${inputPipelineId}!`);
         await updateCheck(octokit, checkId, repo, "success", 'All checks passed successfully!');
         
         return;
