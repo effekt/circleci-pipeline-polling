@@ -1,17 +1,12 @@
 const fetch = require('node-fetch');
 const core = require('@actions/core');
+const github = require('@actions/github');
 
 const isVerbose = core.getInput('verbose').toLowerCase() === 'true';
 
 const { Headers, Request } = fetch;
 
 const delay = ms => new Promise(resolve => setTimeout(resolve, ms));
-
-const clear = () => {
-  process.stdout.write(
-		'\x1B[2J\x1B[3J\x1B[H\x1Bc'
-	);
-}
 
 const getPipelineWorkflows = async (pipelineId, circleCiToken, pageToken) => {
   const headers = new Headers({
@@ -50,17 +45,56 @@ const getPipelineWorkflows = async (pipelineId, circleCiToken, pageToken) => {
   return items;
 }
 
+const createCheck = async (octokit, head_sha, repo) => {
+  isVerbose && console.log('Creating Check');
+
+  const { data: { id } } = await octokit.checks.create({
+    ...repo,
+    head_sha,
+    name: 'CircleCI Pipeline Polling',
+    status: 'in_progress',
+  });
+
+  isVerbose && console.log(`Check ID: ${id}`);
+
+  return id;
+}
+
+const updateCheck = async (octokit, check_run_id, repo, conclusion) => {
+  isVerbose && console.log('Updating Check');
+
+  await octokit.checks.update({
+    ...repo,
+    check_run_id,
+    conclusion,
+  });
+
+  isVerbose && console.log(`Updated Check`);
+}
+
 (async () => {
   try {
-    const inputCciToken = core.getInput('token', { required: true });
-    const inputPipelineId = core.getInput('pipeline', { required: true });
+    const inputCciToken = core.getInput('cci-token', { required: true });
+    const inputGhToken = core.getInput('gh-token', { required: true });
     const inputInterval = core.getInput('interval');
+    const inputPipelineId = core.getInput('pipeline', { required: true });
+    const inputSha = core.getInput('sha', { required: true });
     const inputTimeout = core.getInput('timeout');
+
+    const octokit = github.getOctokit(inputGhToken);
+    const repo = {
+      owner: github.context.repo.owner,
+      repo: github.context.repo.repo,
+    };
+
+    const checkId = await createCheck(octokit, inputSha, repo);
 
     if (isVerbose) {
       console.log(`Has CCI Token: ${inputCciToken ? '✓' : 'x'}`);
+      console.log(`Has GH Token: ${inputGhToken ? '✓' : 'x'}`);
       console.log(`Pipeline ID: ${inputPipelineId}`);
       console.log(`Interval: ${inputInterval}`);
+      console.log(`Commit SHA: ${inputSha}`);
       console.log(`Timeout: ${inputTimeout}`);
     }
 
@@ -76,7 +110,6 @@ const getPipelineWorkflows = async (pipelineId, circleCiToken, pageToken) => {
 
     while(true && !(new Date().getTime() > maxRunTime)) {
       const items = await getPipelineWorkflows(inputPipelineId, inputCciToken);
-      clear();
 
       isVerbose && console.log(items);
 
@@ -95,6 +128,7 @@ const getPipelineWorkflows = async (pipelineId, circleCiToken, pageToken) => {
 
       if (failedWorkflow) {
         core.setFailed(`Failed on workflow: ${failedWorkflow.name}`);
+        await updateCheck(octokit, checkId, repo, "failure");
 
         return;
       }
@@ -105,6 +139,7 @@ const getPipelineWorkflows = async (pipelineId, circleCiToken, pageToken) => {
 
       if (successfulWorkflows.length === workflows.length) {
         console.log(`All workflows passed for pipeline ${pipelineId}!`);
+        await updateCheck(octokit, checkId, repo, "success");
         
         return;
       }
@@ -114,6 +149,8 @@ const getPipelineWorkflows = async (pipelineId, circleCiToken, pageToken) => {
       runTime += pollRate;
       await delay(pollRate);
     }
+
+    await updateCheck(octokit, checkId, repo, "timed_out");
 
     return;
   } catch(err) {

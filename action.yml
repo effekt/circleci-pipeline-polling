@@ -1,18 +1,24 @@
 name: 'CircleCI Pipeline Polling'
 description: 'Wait for all CircleCI tasks to complete'
 inputs:
+  cci-token:
+    description: CircleCI auth token
+    required: true
+  gh-token:
+    description: Repo GitHub auth token
+    required: true
   interval:
     description: Rate at which to poll the pipeline (in seconds)
     default: 10
   pipeline:
     description: CircleCI Pipeline ID
     required: true
+  sha:
+    description: Commit SHA
+    required: true
   timeout:
     description: How long to wait for all workflows to complete (in minutes)
     default: 15
-  token:
-    description: CircleCI Auth Token
-    required: true
   verbose:
     description: Controls verbosity
     default: false
