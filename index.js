@@ -50,10 +50,6 @@ const createCheck = async (octokit, head_sha, repo) => {
     ...repo,
     head_sha,
     name: 'CircleCI Pipeline Polling',
-    output: {
-      summary: 'Monitoring CircleCI workflow statuses...',
-      title: 'CircleCI Pipeline Polling',
-    },
     started_at,
     status: 'in_progress',
   });
@@ -63,17 +59,13 @@ const createCheck = async (octokit, head_sha, repo) => {
   return id;
 }
 
-const updateCheck = async (octokit, check_run_id, repo, conclusion, summary) => {
+const updateCheck = async (octokit, check_run_id, repo, conclusion) => {
   isVerbose && console.log('Updating Check');
 
   await octokit.rest.checks.update({
     ...repo,
     check_run_id,
     conclusion,
-    output: {
-      summary,
-      title: 'CircleCI Pipeline Polling',
-    },
   });
 
   isVerbose && console.log(`Updated Check`);
@@ -136,7 +128,7 @@ const updateCheck = async (octokit, check_run_id, repo, conclusion, summary) => 
 
       if (failedWorkflow) {
         core.setFailed(`Failed on workflow: ${failedWorkflow.name}`);
-        await updateCheck(octokit, checkId, repo, "failure");
+        await updateCheck(octokit, checkId, repo, 'failure');
 
         return;
       }
@@ -147,7 +139,7 @@ const updateCheck = async (octokit, check_run_id, repo, conclusion, summary) => 
 
       if (successfulWorkflows.length === workflows.length) {
         console.log(`All workflows passed for pipeline ${inputPipelineId}!`);
-        await updateCheck(octokit, checkId, repo, "success", 'All checks passed successfully!');
+        await updateCheck(octokit, checkId, repo, 'success');
         
         return;
       }
@@ -158,7 +150,7 @@ const updateCheck = async (octokit, check_run_id, repo, conclusion, summary) => 
       await delay(pollRate);
     }
 
-    await updateCheck(octokit, checkId, repo, "timed_out", 'Runtime exceeded permitted maximum length.');
+    await updateCheck(octokit, checkId, repo, 'timed_out');
 
     return;
   } catch(err) {
